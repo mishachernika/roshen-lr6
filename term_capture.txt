@@ -1,0 +1,9 @@
+
+Name                            Stmts   Miss Branch BrPart  Cover
+-----------------------------------------------------------------
+roshen_shop.py                     32      1     18      1    96%
+tests\test_scenarios.py            39      1      2      1    95%
+tests\test_shop.py                 36      1      2      1    95%
+tests\test_system_blackbox.py      52      1      2      1    96%
+-----------------------------------------------------------------
+TOTAL                             159      4     24      4    96%

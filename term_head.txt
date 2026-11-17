@@ -1,0 +1,30 @@
+test_it01_two_customers_consistent_state (test_scenarios.ScenarioTests.test_it01_two_customers_consistent_state)
+IT-01 (R-04): послідовні замовлення двох клієнтів — суми і склад консистентні. ... ok
+test_it02_rejected_order_leaves_stock_intact (test_scenarios.ScenarioTests.test_it02_rejected_order_leaves_stock_intact)
+IT-02 (R-03): замовлення з відсутнім товаром не міняє склад; наступне успішне працює. ... ok
+test_it03_discount_consistent_between_interface_and_order (test_scenarios.ScenarioTests.test_it03_discount_consistent_between_interface_and_order)
+IT-03 (R-01): знижка за карткою синхронна в calc_discount напряму й через замовлення. ... ok
+test_it04_demo_scenario_output (test_scenarios.ScenarioTests.test_it04_demo_scenario_output)
+IT-04 (R-06): демонстраційний сценарій main() виводить «До сплати: 680.8». ... ok
+test_10_percent_from_1000 (test_shop.CalcDiscountTests.test_10_percent_from_1000) ... ok
+test_5_percent_from_500 (test_shop.CalcDiscountTests.test_5_percent_from_500) ... ok
+test_member_adds_3_percent (test_shop.CalcDiscountTests.test_member_adds_3_percent) ... ok
+test_no_discount_below_500 (test_shop.CalcDiscountTests.test_no_discount_below_500) ... ok
+test_empty_order (test_shop.ProcessOrderTests.test_empty_order) ... ok
+test_not_enough_stock_rejected_without_change (test_shop.ProcessOrderTests.test_not_enough_stock_rejected_without_change) ... ok
+test_unknown_product_rejected (test_shop.ProcessOrderTests.test_unknown_product_rejected) ... ok
+test_valid_order_total_and_stock (test_shop.ProcessOrderTests.test_valid_order_total_and_stock) ... ok
+test_st01_no_discount_below_500 (test_system_blackbox.DiscountEquivalenceTests.test_st01_no_discount_below_500)
+ST-01 (R-01): сума 170 < 500 — без знижки. ... ok
+test_st02_boundary_495_no_discount (test_system_blackbox.DiscountEquivalenceTests.test_st02_boundary_495_no_discount)
+ST-02 (R-01): сума 495 — гранична під порогом, без знижки. ... ok
+test_st03_boundary_500_five_percent (test_system_blackbox.DiscountEquivalenceTests.test_st03_boundary_500_five_percent)
+ST-03 (R-01): сума 500 рівно — знижка 5 %, до сплати 475. ... ok
+test_st04_sum_965_five_percent (test_system_blackbox.DiscountEquivalenceTests.test_st04_sum_965_five_percent)
+ST-04 (R-01): сума 965 — під порогом 10 %, знижка 5 %. ... ok
+test_st05_boundary_1000_ten_percent (test_system_blackbox.DiscountEquivalenceTests.test_st05_boundary_1000_ten_percent)
+ST-05 (R-01): сума 1000 рівно — знижка 10 %, до сплати 900. ... ok
+test_st06_above_1000_ten_percent (test_system_blackbox.DiscountEquivalenceTests.test_st06_above_1000_ten_percent)
+ST-06 (R-01): сума 1410 — знижка 10 %, до сплати 1269. ... ok
+test_st07_member_adds_3_percent_to_5 (test_system_blackbox.DiscountEquivalenceTests.test_st07_member_adds_3_percent_to_5)
+ST-07 (R-01): сума 965 + картка = знижка 8 %, до сплати 887.8. ... ok
