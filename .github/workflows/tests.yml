@@ -22,9 +22,9 @@ jobs:
         run: python -m pip install coverage
       - name: Demonstration scenario (console)
         run: python roshen_shop.py
-      - name: GUI module import (headless smoke)
-        run: python -c "import gui"
-      - name: Unit, black-box, scenario and GUI-logic tests (33 tests)
+      - name: GUI module import + order smoke (headless)
+        run: python -c "import gui; ok, r = gui.submit_order({'Торт': 2}, dict(gui.STOCK), gui.PRICES, True); assert ok and r == 368.6, r; print('gui smoke OK:', r)"
+      - name: Unit, black-box, scenario and GUI-logic tests (37 tests)
         run: python -m unittest discover -s tests -v
       - name: Coverage with branches (must be >= 95%; gui.py omitted via .coveragerc)
         run: |

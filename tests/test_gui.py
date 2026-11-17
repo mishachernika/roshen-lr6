@@ -53,5 +53,30 @@ class WiringTests(unittest.TestCase):
         self.assertEqual(gui.PRICES, {"Конфети": 120, "Торт": 190, "Шоколад": 85})
 
 
+class SubmitOrderTests(unittest.TestCase):
+    """Логіка кнопки «Оформити» (submit_order): успіх списує склад, відмова — ні."""
+
+    def test_success_writes_stock(self):
+        stock = dict(gui.STOCK)
+        ok, final = gui.submit_order({"Торт": 2}, stock, gui.PRICES, True)
+        self.assertTrue(ok)
+        self.assertEqual(final, 368.6)          # 380 грн, картка −3 %
+        self.assertEqual(stock["Торт"], 18)
+
+    def test_rejection_keeps_stock(self):
+        stock = dict(gui.STOCK)
+        ok, reason = gui.submit_order({"Торт": 21}, stock, gui.PRICES, False)
+        self.assertFalse(ok)
+        self.assertIn("Недостатньо", reason)
+        self.assertEqual(stock["Торт"], 20)
+
+    def test_zero_quantity_rejected(self):
+        stock = dict(gui.STOCK)
+        ok, reason = gui.submit_order({"Торт": 0}, stock, gui.PRICES, False)
+        self.assertFalse(ok)
+        self.assertIn("більшою за нуль", reason)
+        self.assertEqual(stock["Торт"], 20)
+
+
 if __name__ == "__main__":
     unittest.main()

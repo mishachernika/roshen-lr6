@@ -24,7 +24,7 @@
 ```
 python gui.py                         # візуальна оболонка (Tkinter)
 python roshen_shop.py                 # демонстраційний сценарій
-python -m unittest discover -s tests  # усі 34 автоматизовані тести
+python -m unittest discover -s tests  # усі 37 автоматизованих тестів
 ```
 
 Команди запуску виконуються з кореня каталогу продукту.

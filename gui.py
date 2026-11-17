@@ -55,6 +55,20 @@ def discount_panel_text(total, is_member):
     return "Сума: %.2f  →  знижка %d%%  →  до сплати: %.2f грн" % (total, round(rate * 100), final), final
 
 
+def submit_order(order, stock, prices, is_member):
+    """Оформлення замовлення без GUI: (True, сума) або (False, причина відмови).
+
+    Склад змінюється лише при успіху (R-02, R-03, R-05 — причини відмови).
+    """
+    reason = validate_order(order, stock)
+    if reason is not None:
+        return False, reason
+    final = shop.process_order(order, stock, prices, is_member)
+    if final is None:
+        return False, "Замовлення відхилено"
+    return True, final
+
+
 class ShopApp:
     """Головне вікно «Нове замовлення» (макет — рисунок 3 звіту ЛР6)."""
 
@@ -69,6 +83,16 @@ class ShopApp:
                  font=FONT_HEAD).pack(side="left", padx=10, pady=6)
         tk.Button(bar, text="Довідка (F1)", bg=CHERRY, fg="white", bd=0,
                   font=FONT_UI, command=self.show_help).pack(side="right", padx=10)
+
+        menubar = tk.Menu(root)
+        m_file = tk.Menu(menubar, tearoff=0)
+        m_file.add_command(label="Вихід", accelerator="Alt+F4", command=root.destroy)
+        m_help = tk.Menu(menubar, tearoff=0)
+        m_help.add_command(label="Довідка (F1)", command=self.show_help)
+        m_help.add_command(label="Про програму", command=self.show_about)
+        menubar.add_cascade(label="Файл", menu=m_file)
+        menubar.add_cascade(label="Довідка", menu=m_help)
+        root.config(menu=menubar)
 
         form = tk.Frame(root, bg="white")
         form.pack(padx=12, pady=10, fill="x")
@@ -87,10 +111,10 @@ class ShopApp:
         self.stock_hint.grid(row=1, column=2, sticky="w", padx=8)
 
         self.member = tk.BooleanVar(value=False)
-        tk.Checkbutton(form, text="Картка клієнта (+3 %)", variable=self.member,
-                       bg="white", fg=TEXT, font=FONT_UI,
-                       activebackground="white", command=self.refresh).grid(
-            row=2, column=1, sticky="w", pady=2)
+        self.member_btn = tk.Checkbutton(form, text="Картка клієнта (+3 %)", variable=self.member,
+                                         bg="white", fg=TEXT, font=FONT_UI,
+                                         activebackground="white", command=self.refresh)
+        self.member_btn.grid(row=2, column=1, sticky="w", pady=2)
 
         self.panel = tk.Label(root, text="", bg=PANEL_BG, fg=PANEL_FG,
                               font=FONT_MONO, anchor="w", relief="solid", bd=2)
@@ -101,8 +125,18 @@ class ShopApp:
         self.ok_btn = tk.Button(buttons, text="Оформити (Ctrl+Enter)", bg=CHERRY, fg="white",
                                 font=FONT_UI, width=22, command=self.place_order)
         self.ok_btn.pack(side="left", padx=6)
-        tk.Button(buttons, text="Скасувати (Esc)", bg="white", fg=TEXT, font=FONT_UI,
-                  width=18, command=self.cancel).pack(side="left", padx=6)
+        self.cancel_btn = tk.Button(buttons, text="Скасувати (Esc)", bg="white", fg=TEXT, font=FONT_UI,
+                                    width=18, command=self.cancel)
+        self.cancel_btn.pack(side="left", padx=6)
+
+        # статус-бар із підказками (тексти — таблиця 15 звіту)
+        self.hint = tk.Label(root, text="", bg="white", fg=MUTED, font=FONT_UI, anchor="w")
+        self.hint.pack(fill="x", padx=12, pady=(0, 8))
+        self._bind_hint(self.product, "Виберіть товар із прайс-листа")
+        self._bind_hint(self.qty, "Додатне ціле, не більше залишку")
+        self._bind_hint(self.member_btn, "Знижка постійного клієнта +3 %")
+        self._bind_hint(self.ok_btn, "Списати товар зі складу та показати суму (Ctrl+Enter)")
+        self._bind_hint(self.cancel_btn, "Закрити без змін (Esc)")
 
         tk.Label(root, text="Склад:", bg="white", fg=TEXT, font=FONT_UI).pack(anchor="w", padx=12)
         self.tree = ttk.Treeview(root, columns=("stock",), show="headings", height=4)
@@ -132,24 +166,30 @@ class ShopApp:
         for name, qty in STOCK.items():
             self.tree.insert("", "end", iid=name, values=("%s: %d" % (name, qty),))
 
+    def _bind_hint(self, widget, text):
+        widget.bind("<Enter>", lambda e: self.hint.config(text=text))
+        widget.bind("<Leave>", lambda e: self.hint.config(text=""))
+
     def place_order(self):
         name = self.product.get()
         try:
             qty = int(self.qty.get())
         except ValueError:
             qty = 0
-        order = {name: qty}
-        reason = validate_order(order, STOCK)
-        if reason is not None:
-            messagebox.showerror("Замовлення відхилено", reason + "\nСклад не змінено.")
+        ok, result = submit_order({name: qty}, STOCK, PRICES, self.member.get())
+        if not ok:
+            messagebox.showerror("Замовлення відхилено", result + "\nСклад не змінено.")
             return
-        final = shop.process_order(order, STOCK, PRICES, self.member.get())
-        if final is None:
-            messagebox.showerror("Замовлення відхилено", "Склад не змінено.")
-            return
-        messagebox.showinfo("Замовлення прийнято", "До сплати: %.2f грн" % final)
+        messagebox.showinfo("Замовлення прийнято", "До сплати: %.2f грн" % result)
         self.refresh()
         self.refresh_stock()
+
+    def show_about(self):
+        messagebox.showinfo(
+            "Про програму",
+            "ПЗ магазину «Рошен» (варіант 13).\n"
+            "Версія 1.0, спіраль ЛР6. Автор: Чернік Михайло, група ІПЗ-41.\n"
+            "Бізнес-логіка: roshen_shop.py (протестована, ЛР4–ЛР5).")
 
     def cancel(self):
         self.qty.delete(0, "end")
