@@ -4,3 +4,5 @@ htmlcov/
 __pycache__/
 *.py[cod]
 .DS_Store
+make_report.py
+term_*.txt
