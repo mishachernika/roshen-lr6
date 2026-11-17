@@ -1,0 +1,7 @@
+[run]
+branch = true
+omit =
+    gui.py
+
+[report]
+show_missing = true
