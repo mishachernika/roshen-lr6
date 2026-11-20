@@ -48,6 +48,10 @@ python roshen_shop.py        # демонстраційний консольни
                              # (імпорт модуля теж виконує main() — відомий недолік)
 python metrics.py            # метрики Холстеда та Спен
 python -m unittest discover -s tests -v   # 37 тестів
+
+# на macOS: якщо `python3` — X11-збірка без XQuartz, вікно буде порожнім;
+# тоді запускайте Homebrew-Python із рідним Tk (Aqua):
+/opt/homebrew/bin/python3.14 gui.py
 ```
 
 Скріншот робочого вікна касира (нативний macOS Tk/Aqua, тема clam):
