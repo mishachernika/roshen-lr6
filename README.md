@@ -50,6 +50,9 @@ python metrics.py            # метрики Холстеда та Спен
 python -m unittest discover -s tests -v   # 37 тестів
 ```
 
+Скріншот робочого вікна касира (нативний macOS Tk/Aqua, тема clam):
+`docs/img/gui_window.png`.
+
 Вимоги: Python 3.8+, лише стандартна бібліотека; для GUI — Python із
 підтримкою Tkinter (Windows/macOS — є у встановлювачі; Linux — пакет
 `python3-tk`). ОС: Windows / Linux / macOS.
