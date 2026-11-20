@@ -29,6 +29,10 @@ with contextlib.redirect_stdout(io.StringIO()):
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 HELP_PATH = os.path.join(BASE_DIR, "docs", "HELP_Магазин_Рошен.md")
+LOGO_PATH = os.path.join(BASE_DIR, "docs", "img", "logo_roshen.png")
+PRODUCT_IMG_DIR = os.path.join(BASE_DIR, "docs", "img", "products")
+# оригінальні ілюстрації товарів у палітрі бренду (не сторонні фото — авторські права Рошен не порушено)
+PRODUCT_IMAGES = {"Конфети": "candy.png", "Торт": "cake.png", "Шоколад": "choco.png"}
 
 PRICES = {"Конфети": 120, "Торт": 190, "Шоколад": 85}
 STOCK = {"Конфети": 50, "Торт": 20, "Шоколад": 100}
@@ -148,8 +152,8 @@ class ShopApp:
         build_styles()
         root.title("Магазин «Рошен» — каса")
         root.configure(bg=BG)
-        root.geometry("720x660")
-        root.minsize(660, 620)
+        root.geometry("780x660")
+        root.minsize(720, 620)
 
         menubar = tk.Menu(root)
         m_file = tk.Menu(menubar, tearoff=0)
@@ -161,15 +165,23 @@ class ShopApp:
         menubar.add_cascade(label="Довідка", menu=m_help)
         root.config(menu=menubar)
 
-        # вишнева шапка
+        # вишнева шапка з логотипом
         header = ttk.Frame(root, style="Header.TFrame")
         header.pack(fill="x")
-        ttk.Label(header, text="Магазин «Рошен»", style="Header.TLabel").pack(side="left", padx=14, pady=10)
+        self._logo_img = self._load_image(LOGO_PATH, subsample=3)  # 96px → 32px
+        if self._logo_img is not None:
+            ttk.Label(header, image=self._logo_img, style="Header.TLabel").pack(side="left", padx=(14, 4), pady=8)
+        ttk.Label(header, text="Магазин «Рошен»", style="Header.TLabel").pack(side="left", pady=10)
         ttk.Button(header, text="Довідка (F1)", style="Header.TButton",
                    command=self.show_help).pack(side="right", padx=12, pady=8)
 
         self.cart = {}     # кошик: {товар: кількість}
         self.history = []  # оформлені чеки: {"n", "time", "text", "rate", "final"}
+        self._product_imgs = {}
+        for name, fn in PRODUCT_IMAGES.items():
+            img = self._load_image(os.path.join(PRODUCT_IMG_DIR, fn), subsample=2)
+            if img is not None:
+                self._product_imgs[name] = img
 
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(fill="both", expand=True, padx=14, pady=12)
@@ -206,28 +218,37 @@ class ShopApp:
         form = ttk.Frame(tab, style="Card.TFrame")
         form.grid(row=0, column=0, sticky="n", padx=(0, 10), pady=4)
 
-        ttk.Label(form, text="Товар:", style="Field.TLabel").grid(row=0, column=0, sticky="w", pady=6)
+        # прев'ю товару (ілюстрація змінюється разом із вибором у списку)
+        if self._product_imgs:
+            self.pic = tk.Label(form, bg=BG, image=list(self._product_imgs.values())[1])  # «Торт»
+            self.pic.grid(row=0, column=0, rowspan=4, padx=(0, 10), pady=6)
+            c0 = 1
+        else:
+            self.pic = None
+            c0 = 0
+
+        ttk.Label(form, text="Товар:", style="Field.TLabel").grid(row=0, column=c0, sticky="w", pady=6)
         self.product = ttk.Combobox(form, values=list(PRICES), state="readonly", font=FONT_UI, width=16)
         self.product.current(1)  # «Торт»
-        self.product.grid(row=0, column=1, sticky="w", padx=(8, 8), pady=6)
+        self.product.grid(row=0, column=c0 + 1, sticky="w", padx=(8, 8), pady=6)
         self.price_hint = ttk.Label(form, text="", style="Muted.TLabel")
-        self.price_hint.grid(row=0, column=2, sticky="w", padx=8)
+        self.price_hint.grid(row=0, column=c0 + 2, sticky="w", padx=8)
         self.product.bind("<<ComboboxSelected>>", lambda e: self.refresh())
 
-        ttk.Label(form, text="Кількість:", style="Field.TLabel").grid(row=1, column=0, sticky="w", pady=6)
+        ttk.Label(form, text="Кількість:", style="Field.TLabel").grid(row=1, column=c0, sticky="w", pady=6)
         self.qty = tk.Spinbox(form, from_=1, to=99, width=8, font=FONT_UI, bg=BG, fg=TEXT,
                               buttonbackground=BG, command=self.refresh)
-        self.qty.grid(row=1, column=1, sticky="w", padx=(8, 8), pady=6)
+        self.qty.grid(row=1, column=c0 + 1, sticky="w", padx=(8, 8), pady=6)
         self.stock_hint = ttk.Label(form, text="", style="Muted.TLabel")
-        self.stock_hint.grid(row=1, column=2, sticky="w", padx=8)
+        self.stock_hint.grid(row=1, column=c0 + 2, sticky="w", padx=8)
 
         self.member = tk.BooleanVar(value=False)
         self.member_btn = ttk.Checkbutton(form, text="Картка клієнта (+3 %)", variable=self.member,
                                           style="TCheckbutton", command=self.refresh)
-        self.member_btn.grid(row=2, column=0, columnspan=3, sticky="w", padx=(0, 8), pady=6)
+        self.member_btn.grid(row=2, column=c0, columnspan=3, sticky="w", padx=(0, 8), pady=6)
 
         self.add_btn = ttk.Button(form, text="Додати в чек", style="TButton", command=self.add_to_cart)
-        self.add_btn.grid(row=3, column=0, columnspan=2, sticky="w", padx=(0, 8), pady=6)
+        self.add_btn.grid(row=3, column=c0, columnspan=2, sticky="w", padx=(0, 8), pady=6)
 
         # кошик (праворуч)
         cart_box = ttk.Frame(tab, style="Card.TFrame")
@@ -317,6 +338,15 @@ class ShopApp:
 
     # ---------- спільні дії ----------
 
+    @staticmethod
+    def _load_image(path, subsample=1):
+        """PNG через tk.PhotoImage (Tk 8.6 читає PNG нативно); None, якщо файл недоступний."""
+        try:
+            img = tk.PhotoImage(file=path)
+            return img.subsample(subsample, subsample) if subsample > 1 else img
+        except tk.TclError:
+            return None
+
     def _center(self):
         self.root.update_idletasks()
         w, h = self.root.winfo_width(), self.root.winfo_height()
@@ -336,6 +366,8 @@ class ShopApp:
             qty = 0
         self.price_hint.config(text="ціна: %d грн" % PRICES.get(name, 0))
         self.stock_hint.config(text="залишок: %d шт" % STOCK.get(name, 0))
+        if self.pic is not None:
+            self.pic.config(image=self._product_imgs.get(name))
         total = order_total(self.cart, PRICES)
         text, _ = discount_panel_text(total, self.member.get())
         self.panel.config(text="  " + text)

@@ -132,5 +132,20 @@ class CartAndHistoryTests(unittest.TestCase):
         self.assertEqual(stock["Шоколад"], 92)
 
 
+class ProductImagesTests(unittest.TestCase):
+    """Кожен товар із прайса має оригінальну ілюстрацію (авторські права не порушено)."""
+
+    def test_every_product_has_image(self):
+        base = os.path.dirname(gui.__file__)
+        for name, fn in gui.PRODUCT_IMAGES.items():
+            self.assertIn(name, gui.PRICES)
+            path = os.path.join(base, "docs", "img", "products", fn)
+            self.assertTrue(os.path.exists(path), path)
+
+    def test_logo_exists(self):
+        base = os.path.dirname(gui.__file__)
+        self.assertTrue(os.path.exists(os.path.join(base, "docs", "img", "logo_roshen.png")))
+
+
 if __name__ == "__main__":
     unittest.main()
