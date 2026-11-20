@@ -78,5 +78,59 @@ class SubmitOrderTests(unittest.TestCase):
         self.assertEqual(stock["Торт"], 20)
 
 
+class StockTabTests(unittest.TestCase):
+    """Вкладка «Склад»: поповнення через restock."""
+
+    def test_restock_ok(self):
+        stock = dict(gui.STOCK)
+        ok, left = gui.restock(stock, "Торт", 10)
+        self.assertTrue(ok)
+        self.assertEqual(left, 30)
+        self.assertEqual(stock["Торт"], 30)
+
+    def test_restock_unknown_product(self):
+        ok, reason = gui.restock(dict(gui.STOCK), "Вафлі", 5)
+        self.assertFalse(ok)
+        self.assertIn("прайс-листі", reason)
+
+    def test_restock_zero_keeps_stock(self):
+        stock = dict(gui.STOCK)
+        ok, reason = gui.restock(stock, "Торт", 0)
+        self.assertFalse(ok)
+        self.assertIn("більшою за нуль", reason)
+        self.assertEqual(stock["Торт"], 20)
+
+
+class CartAndHistoryTests(unittest.TestCase):
+    """Вкладки «Нове замовлення» та «Чеки»: кошик, сума, історія, виручка."""
+
+    def test_order_total(self):
+        self.assertEqual(gui.order_total({"Торт": 2, "Шоколад": 1}, gui.PRICES), 465)
+
+    def test_order_total_empty(self):
+        self.assertEqual(gui.order_total({}, gui.PRICES), 0)
+
+    def test_describe_order(self):
+        self.assertEqual(gui.describe_order({"Торт": 4, "Шоколад": 8}), "Торт ×4; Шоколад ×8")
+
+    def test_describe_order_empty(self):
+        self.assertEqual(gui.describe_order({}), "—")
+
+    def test_revenue_total(self):
+        self.assertEqual(gui.revenue_total([{"final": 368.6}, {"final": 625.6}]), 994.2)
+
+    def test_revenue_total_empty(self):
+        self.assertEqual(gui.revenue_total([]), 0)
+
+    def test_multi_item_cart_end_to_end(self):
+        stock = dict(gui.STOCK)
+        cart = {"Торт": 4, "Шоколад": 8}  # 760 + 680 = 1440 грн
+        ok, final = gui.submit_order(cart, stock, gui.PRICES, True)
+        self.assertTrue(ok)
+        self.assertEqual(final, 1252.8)   # знижка 10 % (від 1000) + 3 % картка = 13 %
+        self.assertEqual(stock["Торт"], 16)
+        self.assertEqual(stock["Шоколад"], 92)
+
+
 if __name__ == "__main__":
     unittest.main()
