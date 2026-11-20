@@ -90,6 +90,9 @@ def build_styles():
     style.configure("Header.TLabel", background=CHERRY, foreground="white", font=FONT_HEAD)
     style.configure("Accent.TButton", background=CHERRY, foreground="white", font=FONT_BOLD, padding=8)
     style.map("Accent.TButton", background=[("active", CHERRY_DARK), ("pressed", CHERRY_DARK)])
+    style.configure("Header.TButton", background=CHERRY_DARK, foreground="white", font=FONT_UI, padding=6)
+    style.map("Header.TButton", background=[("active", CHERRY), ("pressed", CHERRY)],
+                foreground=[("active", "white"), ("pressed", "white")])
     style.configure("TButton", background=BG, foreground=TEXT, font=FONT_UI, padding=8)
     style.map("TButton", background=[("active", PANEL_BG)])
     style.configure("TCheckbutton", background=BG, foreground=TEXT, font=FONT_UI)
@@ -125,8 +128,8 @@ class ShopApp:
         header = ttk.Frame(root, style="Header.TFrame")
         header.pack(fill="x")
         ttk.Label(header, text="Магазин «Рошен»", style="Header.TLabel").pack(side="left", padx=14, pady=10)
-        tk.Button(header, text="Довідка (F1)", bg=CHERRY, fg="white", activebackground=CHERRY_DARK,
-                  activeforeground="white", bd=0, font=FONT_UI, command=self.show_help).pack(side="right", padx=12)
+        ttk.Button(header, text="Довідка (F1)", style="Header.TButton",
+                   command=self.show_help).pack(side="right", padx=12, pady=8)
 
         body = ttk.Frame(root, style="Card.TFrame")
         body.pack(fill="both", expand=True, padx=14, pady=12)
